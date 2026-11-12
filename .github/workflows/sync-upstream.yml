@@ -7,8 +7,8 @@ name: Sincronizar com o repo do time
 
 on:
   schedule:
-    # 08:00 UTC = 05:00 no horário de Brasília/Recife (UTC-3)
-    - cron: '0 8 * * *'
+    # De hora em hora, no minuto 7 (fora do pico do minuto 0 do GitHub)
+    - cron: '7 * * * *'
   workflow_dispatch:
 
 permissions:
