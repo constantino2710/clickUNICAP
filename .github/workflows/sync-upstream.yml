@@ -1,0 +1,37 @@
+name: Sincronizar com o repo do time
+
+# Espelha a main de VasconcelosArth/clickUNICAP na main deste fork.
+# O Render faz o deploy automático a partir da main do fork.
+# Este arquivo vive na branch "sync" (branch padrão do fork) para que a main
+# continue sendo uma cópia exata do repo do time.
+
+on:
+  schedule:
+    # 08:00 UTC = 05:00 no horário de Brasília/Recife (UTC-3)
+    - cron: '0 8 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-upstream
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Espelhar a main do repo do time
+        env:
+          # SYNC_TOKEN (PAT com escopos repo + workflow) é necessário quando o
+          # time altera arquivos em .github/workflows; sem ele usa o token padrão.
+          TOKEN: ${{ secrets.SYNC_TOKEN || github.token }}
+          UPSTREAM: https://github.com/VasconcelosArth/clickUNICAP.git
+        run: |
+          git init -q mirror
+          cd mirror
+          git fetch -q "$UPSTREAM" main
+          echo "Upstream main: $(git rev-parse FETCH_HEAD)"
+          # Sem --force: se a main do fork divergir, o job falha em vez de sobrescrever.
+          git push "https://x-access-token:${TOKEN}@github.com/${GITHUB_REPOSITORY}.git" FETCH_HEAD:refs/heads/main
